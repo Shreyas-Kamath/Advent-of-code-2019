@@ -1,31 +1,30 @@
 #include <fstream>
-#include <sstream>
-#include <iostream>
-#include <string>
 #include <vector>
+#include <string>
+#include <ranges>
 
 int main() {
-    std::vector<int> nums;
-
-    std::ifstream in("data.txt"); std::string line{}, num{};
+    std::string line; std::ifstream in("data.txt");
 
     std::getline(in, line);
-    in.close();
 
-    std::stringstream ss(line);
+    auto nums = line
+    | std::views::split(',')
+    | std::views::transform([](auto&& subrange) { return std::stoi(std::string(subrange.begin(), subrange.end())); })
+    | std::ranges::to<std::vector<int>>();
 
-    while (std::getline(ss, num, ',')) nums.emplace_back(std::stoi(num));
+    for (int ip{}; ip < nums.size(); ip += 4) {
+        int& instr = nums[ip];
+        
+        if (instr == 99) break;
 
-    for (int i{}; i < nums.size(); i += 4) {
-        if (nums[i] == 99) break;
-        else if (nums[i] == 1) {
-            nums[nums[i + 3]] = nums[nums[i + 2]] + nums[nums[i + 1]];
-        }
-        else if (nums[i] == 2) {
-            nums[nums[i + 3]] = nums[nums[i + 2]] * nums[nums[i + 1]];
-        }
-        else break;
+        int& lhs_loc = nums[ip + 1];
+        int& rhs_loc = nums[ip + 2];
+        int& res_loc = nums[ip + 3]; 
+        
+        if (instr == 1) nums[res_loc] = nums[lhs_loc] + nums[rhs_loc];
+        else if (instr == 2) nums[res_loc] = nums[lhs_loc] * nums[rhs_loc];
     }
-    std::cout << nums[0];
-    return 0;
+
+    printf("%d", nums.front());
 }
